@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "436944015698",
+    "project_id": "browsemate",
+    "storage_bucket": "browsemate.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:436944015698:android:e787e31e99a41988832a8b",
+        "android_client_info": {
+          "package_name": "com.browsemate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxZKQbI2V3JfPMEPX8xgNNQoLu8zV9Hs4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
