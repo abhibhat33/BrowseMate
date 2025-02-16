@@ -4,62 +4,69 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet
+  StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { auth } from "../../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/Ionicons";
 
 export default function SignupScreen({ navigation }) {
+  // State variables for email, password, and error handling
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Email Validation
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  // Function to validate email format
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // Function to check password length
+  const validatePassword = (password) => password.length >= 6;
 
-  // Password Strength Check
-  const validatePassword = (password) => {
-    return password.length >= 6; // Minimum 6 characters
-  };
-
+  // Function to handle user signup
   const handleSignup = async () => {
     setErrorMessage("");
+    setIsLoading(true);
 
+    // Validations for empty fields, email format, and password match
     if (!email || !password || !confirmPassword) {
       setErrorMessage("All fields are required.");
+      setIsLoading(false);
       return;
     }
     if (!validateEmail(email)) {
       setErrorMessage("Enter a valid email address.");
+      setIsLoading(false);
       return;
     }
     if (!validatePassword(password)) {
       setErrorMessage("Password must be at least 6 characters.");
+      setIsLoading(false);
       return;
     }
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match.");
+      setIsLoading(false);
       return;
     }
 
     try {
+      // Create user with Firebase authentication
       await createUserWithEmailAndPassword(auth, email, password);
-      await AsyncStorage.setItem('isLoggedIn', 'true');
-      navigation.replace("Home");
+      await AsyncStorage.setItem("isLoggedIn", "true"); // Store login status in AsyncStorage
+      navigation.replace("Home"); // Navigate to Home screen after successful signup
     } catch (error) {
       if (error.code === "auth/email-already-in-use") {
         setErrorMessage("This email is already registered. Please login instead.");
       } else {
         setErrorMessage(error.message);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,6 +74,7 @@ export default function SignupScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
 
+      {/* Email Input */}
       <TextInput
         placeholder="Email"
         value={email}
@@ -75,6 +83,7 @@ export default function SignupScreen({ navigation }) {
         style={styles.input}
         keyboardType="email-address"
         autoCapitalize="none"
+        editable={!isLoading}
       />
 
       {/* Password Input */}
@@ -86,8 +95,10 @@ export default function SignupScreen({ navigation }) {
           onChangeText={setPassword}
           secureTextEntry={!isPasswordVisible}
           style={styles.passwordInput}
+          editable={!isLoading}
         />
-        <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+        {/* Toggle password visibility */}
+        <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} disabled={isLoading}>
           <Icon
             name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
             size={24}
@@ -106,8 +117,10 @@ export default function SignupScreen({ navigation }) {
           onChangeText={setConfirmPassword}
           secureTextEntry={!isConfirmPasswordVisible}
           style={styles.passwordInput}
+          editable={!isLoading}
         />
-        <TouchableOpacity onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}>
+        {/* Toggle confirm password visibility */}
+        <TouchableOpacity onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)} disabled={isLoading}>
           <Icon
             name={isConfirmPasswordVisible ? "eye-off-outline" : "eye-outline"}
             size={24}
@@ -117,19 +130,27 @@ export default function SignupScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Display error message if any */}
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-      <TouchableOpacity style={styles.button} onPress={handleSignup}>
-        <Text style={styles.buttonText}>Sign Up</Text>
+      {/* Signup Button */}
+      <TouchableOpacity style={[styles.button, isLoading && styles.buttonDisabled]} onPress={handleSignup} disabled={isLoading}>
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Sign Up</Text>
+        )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+      {/* Navigate to Login screen if the user already has an account */}
+      <TouchableOpacity onPress={() => navigation.navigate("Login")} disabled={isLoading}>
         <Text style={styles.loginText}>Already have an account? Login</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+// Styles for the signup screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -175,7 +196,7 @@ const styles = StyleSheet.create({
     height: 50,
     paddingHorizontal: 15,
     fontSize: 16,
-    color: "#000"
+    color: "#000",
   },
   eyeIcon: {
     paddingHorizontal: 15,
@@ -192,6 +213,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  buttonDisabled: {
+    backgroundColor: "#a0a0a0",
   },
   loginText: {
     fontSize: 16,
