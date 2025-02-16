@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
 import { auth } from '../../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function LoginScreen({ navigation }) {
   // State variables for email, password, error message, password visibility, and loading state
@@ -21,13 +20,15 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   // Function to validate email format using regex
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const validateEmail = useCallback((email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [])
 
-  // Function to handle user login
-  const handleLogin = async () => {
+  // Toggle password visibility
+  const togglePasswordVisibility = useCallback(() => {
+    setIsPasswordVisible((prev) => !prev);
+  }, []);
+
+  // Handle login function
+  const handleLogin = useCallback(async () => {
     setErrorMessage('');
     setLoading(true);
 
@@ -60,13 +61,13 @@ export default function LoginScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, password, validateEmail, navigation]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
 
-      {/* Email input field */}
+      {/* Email Input */}
       <TextInput
         placeholder="Email"
         placeholderTextColor="#888"
@@ -78,7 +79,7 @@ export default function LoginScreen({ navigation }) {
         editable={!loading}
       />
 
-      {/* Password input field with toggle visibility feature */}
+      {/* Password Input */}
       <View style={[styles.passwordContainer, loading && styles.disabledInput]}>
         <TextInput
           placeholder="Password"
@@ -89,36 +90,26 @@ export default function LoginScreen({ navigation }) {
           style={styles.passwordInput}
           editable={!loading}
         />
-        <TouchableOpacity
-          onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-          disabled={loading}
-        >
-          <Icon
-            name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
-            size={24}
-            color="#777"
-            style={styles.eyeIcon}
-          />
+        <TouchableOpacity onPress={togglePasswordVisibility} disabled={loading}>
+          <Text style={styles.emoji}>
+            {isPasswordVisible ? '🙈' : '👁️'}
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Error message display */}
+      {/* Error Message */}
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-      {/* Login button with loading indicator */}
+      {/* Login Button */}
       <TouchableOpacity
         style={[styles.button, loading && styles.disabledButton]}
         onPress={handleLogin}
         disabled={loading}
       >
-        {loading ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
+        {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
       </TouchableOpacity>
 
-      {/* Navigate to Signup screen */}
+      {/* Signup Navigation */}
       <TouchableOpacity onPress={() => navigation.navigate('Signup')} disabled={loading}>
         <Text style={[styles.signupText, loading && styles.disabledText]}>
           Don't have an account? Sign up
@@ -126,9 +117,10 @@ export default function LoginScreen({ navigation }) {
       </TouchableOpacity>
     </View>
   );
-}
+};
 
-// Styles for the login screen
+
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -180,7 +172,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
   },
-  eyeIcon: {
+  emoji: {
+    fontSize: 24,
     paddingHorizontal: 15,
   },
   button: {

@@ -16,7 +16,6 @@ import { fetchItems, setPage } from '../redux/itemSlice';
 import { auth } from '../../firebaseConfig';
 import { signOut } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/Ionicons';
 
 export default function HomeScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -74,8 +73,8 @@ export default function HomeScreen({ navigation }) {
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
-            <Icon name="close-circle" size={20} color="gray" />
-          </TouchableOpacity>
+          <Text style={styles.into}>❌</Text>
+        </TouchableOpacity>
         )}
       </View>
 
@@ -108,16 +107,16 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.description}>Category: {item.category}</Text>
               <Text style={styles.price}>Price: ${item.price}</Text>
             </View>
-            <Icon name="chevron-forward" size={30} color="gray" style={styles.arrowIcon} />
+            <Text style={styles.arrowIcon}>➡️</Text>
           </TouchableOpacity>
         )}
       />
 
       {/* Pagination Controls */}
       <View style={styles.pagination}>
-        <Button title="Prev" onPress={() => dispatch(setPage(currentPage - 1))} disabled={currentPage === 1} />
+        <Button title="⬅️ Prev" onPress={() => dispatch(setPage(currentPage - 1))} disabled={currentPage === 1} />
         <Text>Page {currentPage}</Text>
-        <Button title="Next" onPress={() => dispatch(setPage(currentPage + 1))} />
+        <Button title="Next ➡️" onPress={() => dispatch(setPage(currentPage + 1))} />
       </View>
     </View>
   );
@@ -169,6 +168,7 @@ const styles = StyleSheet.create({
   },
   arrowIcon: {
     marginLeft: 'auto',
+    fontSize: 20,
   },
   image: {
     width: 80,
@@ -191,4 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 10,
   },
+  into: {
+    fontSize: 16
+  }
 });

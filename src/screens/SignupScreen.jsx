@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
 import { auth } from "../../firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Icon from "react-native-vector-icons/Ionicons";
 
 export default function SignupScreen({ navigation }) {
   // State variables for email, password, and error handling
@@ -23,12 +22,12 @@ export default function SignupScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Function to validate email format
-  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  // Function to check password length
-  const validatePassword = (password) => password.length >= 6;
+  const validateEmail = useCallback((email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), []);
+  // Function to check password
+  const validatePassword = useCallback((password) => password.length >= 6, []);
 
   // Function to handle user signup
-  const handleSignup = async () => {
+  const handleSignup = useCallback(async () => {
     setErrorMessage("");
     setIsLoading(true);
 
@@ -60,15 +59,15 @@ export default function SignupScreen({ navigation }) {
       await AsyncStorage.setItem("isLoggedIn", "true"); // Store login status in AsyncStorage
       navigation.replace("Home"); // Navigate to Home screen after successful signup
     } catch (error) {
-      if (error.code === "auth/email-already-in-use") {
-        setErrorMessage("This email is already registered. Please login instead.");
-      } else {
-        setErrorMessage(error.message);
-      }
+      setErrorMessage(
+        error.code === "auth/email-already-in-use"
+          ? "This email is already registered. Please login instead."
+          : error.message
+      );
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [email, password, confirmPassword, navigation, validateEmail, validatePassword]);
 
   return (
     <View style={styles.container}>
@@ -99,12 +98,9 @@ export default function SignupScreen({ navigation }) {
         />
         {/* Toggle password visibility */}
         <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} disabled={isLoading}>
-          <Icon
-            name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
-            size={24}
-            color="#777"
-            style={styles.eyeIcon}
-          />
+           <Text style={styles.emoji}>
+              {isPasswordVisible ? '🙈' : '👁️'}
+           </Text>
         </TouchableOpacity>
       </View>
 
@@ -121,12 +117,9 @@ export default function SignupScreen({ navigation }) {
         />
         {/* Toggle confirm password visibility */}
         <TouchableOpacity onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)} disabled={isLoading}>
-          <Icon
-            name={isConfirmPasswordVisible ? "eye-off-outline" : "eye-outline"}
-            size={24}
-            color="#777"
-            style={styles.eyeIcon}
-          />
+           <Text style={styles.emoji}>
+              {isConfirmPasswordVisible ? '🙈' : '👁️'}
+           </Text>
         </TouchableOpacity>
       </View>
 
@@ -198,8 +191,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#000",
   },
-  eyeIcon: {
+  emoji: {
     paddingHorizontal: 15,
+    fontSize: 20,
   },
   button: {
     width: 300,
